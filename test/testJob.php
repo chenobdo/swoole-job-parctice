@@ -1,21 +1,32 @@
 <?php
 date_default_timezone_set('Asia/Shanghai');
-define('DS', DIRECTORY_SEPARATOR);
-define('APP_PATH', realpath(dirname(__FILE__)).DS.'..'.DS);
 
-require_once APP_PATH . 'src/Jobs.php';
-require_once APP_PATH . 'src/Queue.php';
-require_once APP_PATH . 'src/Process.php';
+require __DIR__ . '/../vendor/autoload.php';
 
-$config = ['host' => '127.0.0.1', 'port' => 6379];
+$config = [
+    'queue'   => ['host' => '127.0.0.1', 'port' => 6379],
+    'logPath' => __DIR__ . '/../log',
+];
 
-$queue = new Kcloze\Jobs\Queue($config);
+$queue = new Kcloze\Jobs\Redis($config);
 
-$jobAction = 'hello';
-$queue->addTopic($jobAction);
+$jobName = 'MyJob';
+$queue->addTopic($jobName);
+$topics = $queue->getTopics();
+var_dump($topics);
 
 for ($i = 0; $i < 100; $i++) {
-	$data = ['title' => 'kcloze', 'time' => tiem()];
-	$queue->push($jobAction, $data);
+	$data = ['jobAction' => 'helloAction', 'title' => 'kcloze', 'time' => time()];
+	$queue->push($jobName, $data);
 	echo "ok\n";
+	$result = $queue->pop($jobName);
+    var_dump($result);
 }
+
+$result = $queue->pop($jobName);
+var_dump($result);
+// for ($i = 0; $i < 100; $i++) {
+//     $data = $queue->pop('hello');
+//     $jobs = new Jobs();
+//     $jobs->run('hello', $data);
+// }

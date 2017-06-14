@@ -8,10 +8,12 @@ class Process
 {
 	private $reserveProcess;
 	private $workNum = 5;
+	private $config  = [];
 
-	public function start()
+	public function start($config)
 	{
-		\swoole_process::daemon();
+		// \swoole_process::daemon();
+		$this->config = $config;
 		// 开启多个进程消费队列
 		for ($i = 0; $i < $this->workNum; $i++) {
 			$this->reserveQueue($i);
@@ -23,7 +25,7 @@ class Process
 	{
 		$self = $this;
 		$pid = getmygid();
-		file_put_contents(APP_PATH . '/data/master.pid.log', $pid . "\n");
+		file_put_contents($this->config['logPath'] . '/master.pid.log', $pid . "\n");
         \swoole_set_process_name("job master " . $pid . " : reserve process");
 
         $this->reserveProcess = new \swoole_process(function () use ($self, $workNum) {
@@ -33,7 +35,7 @@ class Process
             swoole_set_process_name("job " . $workNum . ": reserve process");
             try {
                 $job = Jobs();
-                $job->run();
+                $job->run($this->config);
             } catch (Exception $e) {
                 echo $e->getMessage();
             }
@@ -42,7 +44,6 @@ class Process
 
         });
 		$pid = $reserveProcess->start();
-
 		echo "reserve start ...\n";
 	}
 
