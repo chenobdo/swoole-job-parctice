@@ -2,8 +2,6 @@
 
 namespace Kcloze\Jobs;
 
-use Kcloze\Jobs\Jobs;
-
 class Process
 {
 	private $reserveProcess;
@@ -34,7 +32,7 @@ class Process
             //设置进程名字
             swoole_set_process_name("job " . $workNum . ": reserve process");
             try {
-                $job = Jobs();
+                $job = new Jobs();
                 $job->run($this->config);
             } catch (Exception $e) {
                 echo $e->getMessage();
@@ -43,7 +41,7 @@ class Process
             echo "reserve process " . $workNum . " is working ...\n";
 
         });
-		$pid = $reserveProcess->start();
+		$pid = $this->reserveProcess->start();
 		echo "reserve start ...\n";
 	}
 
