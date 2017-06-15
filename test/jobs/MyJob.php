@@ -1,16 +1,19 @@
 <?php
+
 namespace Kcloze\MyJob;
 
-use Kcloze\Jobs\Jobs;
-
-class MyJob extends Jobs
+class MyJob
 {
 	public function helloAction($data)
     {
         usleep(5);
         echo "hello, world\n";
-        //$this->error();
+    }
 
+    public function errorAction($data)
+    {
+        usleep(5);
+        echo "error, world\n";
     }
 
     private function error()
