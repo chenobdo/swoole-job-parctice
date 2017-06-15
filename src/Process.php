@@ -55,7 +55,7 @@ class Process
 			$this->exitMaster("收到退出信号,退出主进程");
 		});
 
-		\swoole_process::signal(SIGCHLD, function ($signo) use (&$workers)) {
+		\swoole_process::signal(SIGCHLD, function ($signo) use (&$workers) {
 			while (true) {
 				$ret = \swoole_process::wait(false);
 				if ($ret) {
@@ -68,7 +68,7 @@ class Process
                     unset($workers[$pid]);
 				}
 			}
-		}
+		});
 	}
 
 	private function exitMaster()
