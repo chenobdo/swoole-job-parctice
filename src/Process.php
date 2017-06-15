@@ -13,7 +13,7 @@ class Process
 
 	public function start($config)
 	{
-		// \swoole_process::daemon();
+		\Swoole\Process::daemon();
 		$this->config = $config;
 		// 开启多个进程消费队列
 		for ($i = 0; $i < $this->workNum; $i++) {
@@ -21,21 +21,21 @@ class Process
 		}
 
 		$this->registSignal($this->workers);
-		\swoole_process::wait();
+		\Swoole\Process::wait();
 	}
 
 	public function reserveQueue($workNum)
 	{
 		$self = $this;
-		$ppid = getmygid();
-		file_put_contents($self->config['logPath'] . '/master.pid.log', $ppid . "\n");
-        \swoole_set_process_name("job master " . $ppid . $self::PROCESS_NAME_LOG);
+		// $ppid = getmygid();
+		// file_put_contents($self->config['logPath'] . '/master.pid.log', $ppid . "\n");
+        $this->setProcessName("job master " . $ppid . $self::PROCESS_NAME_LOG);
 
-    	$reserveProcess = new \swoole_process(function () use ($self, $workNum) {
+    	$reserveProcess = new \Swoole\Process(function () use ($self, $workNum) {
             // $self->init();
 
             //设置进程名字
-            swoole_set_process_name("job " . $workNum . $self::PROCESS_NAME_LOG);
+            $this->setProcessName("job " . $workNum . $self::PROCESS_NAME_LOG);
             try {
                 $job = new Jobs();
                 $job->run($self->config);
@@ -53,11 +53,11 @@ class Process
 
 	public function registSignal($workers)
 	{
-		\swoole_process::signal(SIGTERM, function($signo) {
+		\Swoole\Process::signal(SIGTERM, function($signo) {
 			$this->exitMaster("收到退出信号,退出主进程");
 		});
 
-		\swoole_process::signal(SIGCHLD, function($signo) use (&$workers)) {
+		\Swoole\Process::signal(SIGCHLD, function($signo) use (&$workers)) {
 			while (true) {
 				$ret = \swoole_process::wait(false);
 				if ($ret) {
@@ -80,6 +80,9 @@ class Process
         exit();
     }
 
+    /**
+     * 设置进程名
+     */
 	private function setProcessName($name)
 	{
 		if (function_exists('swoole_set_process_name') && PHP_OS != 'Darwin') {
