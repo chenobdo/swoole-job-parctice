@@ -13,22 +13,23 @@ class Process
 
 	public function start($config)
 	{
-		// \Swoole\Process::daemon();
+		\Swoole\Process::daemon();
 		$this->config = $config;
+
 		// 开启多个进程消费队列
 		for ($i = 0; $i < $this->workNum; $i++) {
 			$this->reserveQueue($i);
 		}
 
 		$this->registSignal($this->workers);
-		\Swoole\Process::wait();
+		// \Swoole\Process::wait();
 	}
 
 	public function reserveQueue($workNum)
 	{
 		$self = $this;
 		$ppid = getmygid();
-		// file_put_contents($self->config['logPath'] . '/master.pid.log', $ppid . "\n");
+		file_put_contents($self->config['logPath'] . '/master.pid', $ppid . "\n");
         $this->setProcessName("job master " . $ppid . $self::PROCESS_NAME_LOG);
 
     	$reserveProcess = new \Swoole\Process(function () use ($self, $workNum) {
