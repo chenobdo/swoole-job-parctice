@@ -53,6 +53,8 @@ function stop(){
 case $1 in
 
     start )
+        stop
+        sleep 1
         start
     ;;
     stop)

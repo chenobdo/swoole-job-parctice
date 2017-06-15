@@ -4,6 +4,18 @@ namespace Kcloze\Jobs;
 
 class Queue
 {
+    public $topics = [];
+
+    public function addTopics(array $topics)
+    {
+        $this->topics = $topics;
+    }
+
+    public function getTopics()
+    {
+        return $this->topics;
+    }
+
 	public function push($key, $value)
     {
     }
@@ -13,10 +25,6 @@ class Queue
     }
 
     public function addTopic($key)
-    {
-    }
-
-    public function getTopics()
     {
     }
 

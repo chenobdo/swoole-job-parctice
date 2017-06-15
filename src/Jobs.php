@@ -8,7 +8,8 @@ class Jobs
 
 	public function run($config)
 	{
-		$queue = new Redis($config['queue']);
+		$queue = $this->getQueue($config['queue']);
+		$queue->addTopic($config['topics']);
         $log   = new Logs($config['logPath']);
         //循环次数计数
         $req = 0;
@@ -56,4 +57,15 @@ class Jobs
             }
 		}
 	}
+
+	private function getQueue($config)
+    {
+        if (isset($config['name']) && $config['name'] == 'redis') {
+            $queue = new Redis($config);
+        } else {
+        	echo "you must add queue config\n";
+            $queue = null;
+        }
+        return $queue;
+    }
 }
