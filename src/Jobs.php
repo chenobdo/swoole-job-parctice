@@ -4,7 +4,8 @@ namespace Kcloze\Jobs;
 
 class Jobs
 {
-	const MAX_POP = 100; //单个topic每次最多取多少次
+	const MAX_POP = 10; //单个topic每次最多取多少次
+    const MAX_REQUEST = 100;
 
 	protected $logger = null;
     protected $queue  = null;
@@ -12,11 +13,11 @@ class Jobs
     public function __construct($config)
     {
     	$this->logger = new Logs($config['logPath']);
-        $this->getQueue($config['queue']);
-        $this->queue && $this->queue->addTopics($config['topics']);
+        $this->queue = $this->getQueue($config['queue']);
+        $this->queue->addTopics($config['topics']);
     }
 
-	public function run($config)
+	public function run()
 	{
         //循环次数计数
         $req = 0;
@@ -30,8 +31,8 @@ class Jobs
 						$data = $this->queue->pop($jobName);
                         $this->logger->log(print_r($data, true), 'info');
                         if (!empty($data) && isset($data['jobAction'])) {
+                            $jobAction = $data['jobAction']; 
                             $this->logger->log(print_r([$jobName, $jobAction], true), 'info');
-                            $jobAction = $data['jobAction'];
                         	//业务代码
                             $this->loadFramework($jobName, $jobAction, $data);
                         } else {
@@ -57,7 +58,7 @@ class Jobs
 
 	protected function getQueue($config)
     {
-        if (isset($config['name']) && $config['name'] == 'redis') {
+        if ($config['type'] == 'redis') {
             $queue = new Redis($config);
         } else {
         	echo "you must add queue config\n";
@@ -72,7 +73,7 @@ class Jobs
      * 载入框架
      * @return void
      */
-    protected function loadFramework()
+    protected function loadFramework($jobName, $jobAction, $data)
     {
         $jobName = "Kcloze\MyJob\\" . ucfirst($jobName);
         if (method_exists($jobName, $jobAction)) {

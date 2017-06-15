@@ -23,12 +23,12 @@ class MyJob
         $i = mt_rand(0, 5);
         if ($i == 3) {
             echo "出错误了!!!\n";
-            try {
-                $this->methodNoFind();
-                new Abc();
-            } catch (Exception $e) {
-                var_dump($e->getMessage());
-            }
+            //try {
+            //    $this->methodNoFind();
+            //    new Abc();
+            //} catch (Exception $e) {
+            //    var_dump($e->getMessage());
+            //}
         }
     }
 }

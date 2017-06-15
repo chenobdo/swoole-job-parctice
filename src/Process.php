@@ -13,7 +13,7 @@ class Process
 
 	public function start($config)
 	{
-		\Swoole\Process::daemon();
+		// \Swoole\Process::daemon();
 		$this->config = $config;
 		// 开启多个进程消费队列
 		for ($i = 0; $i < $this->workNum; $i++) {
@@ -32,8 +32,6 @@ class Process
         $this->setProcessName("job master " . $ppid . $self::PROCESS_NAME_LOG);
 
     	$reserveProcess = new \Swoole\Process(function () use ($self, $workNum) {
-            // $self->init();
-
             //设置进程名字
             $this->setProcessName("job " . $workNum . $self::PROCESS_NAME_LOG);
             try {
