@@ -10,6 +10,8 @@ class Jobs
 	{
 		$queue = new Redis($config['queue']);
         $log   = new Logs($config['logPath']);
+        //循环次数计数
+        $req = 0;
 		while (true) {
 			$topics = $queue->getTopics();
 			if ($topics) {
@@ -46,6 +48,12 @@ class Jobs
 			$log->log("sleep 3 second!", 'info');
             $log->flush();
             sleep(3);
+            $req++;
+            //达到最大循环次数，退出循环，防止内存泄漏
+            if ($req >= self::MAX_REQUEST) {
+                echo "达到最大循环次数，让子进程退出，主进程会再次拉起子进程\n";
+                break;
+            }
 		}
 	}
 }

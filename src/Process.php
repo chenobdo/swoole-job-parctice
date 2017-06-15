@@ -27,7 +27,7 @@ class Process
 	public function reserveQueue($workNum)
 	{
 		$self = $this;
-		// $ppid = getmygid();
+		$ppid = getmygid();
 		// file_put_contents($self->config['logPath'] . '/master.pid.log', $ppid . "\n");
         $this->setProcessName("job master " . $ppid . $self::PROCESS_NAME_LOG);
 
@@ -85,7 +85,7 @@ class Process
      */
 	private function setProcessName($name)
 	{
-		if (function_exists('swoole_set_process_name') && PHP_OS != 'Darwin') {
+		if (function_exists('swoole_set_process_name')) {
 			swoole_set_process_name($name);
 		}
 	}
