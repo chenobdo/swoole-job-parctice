@@ -8,6 +8,7 @@ class MyJob
     {
         usleep(5);
         echo "hello, world\n";
+        $this->error();
     }
 
     public function errorAction($data)

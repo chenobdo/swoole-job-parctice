@@ -6,50 +6,45 @@ class Jobs
 {
 	const MAX_POP = 100; //单个topic每次最多取多少次
 
+	protected $logger = null;
+    protected $queue  = null;
+
+    public function __construct($config)
+    {
+    	$this->logger = new Logs($config['logPath']);
+        $this->getQueue($config['queue']);
+        $this->queue && $this->queue->addTopics($config['topics']);
+    }
+
 	public function run($config)
 	{
-		$queue = $this->getQueue($config['queue']);
-		$queue->addTopics($config['topics']);
-        $log   = new Logs($config['logPath']);
         //循环次数计数
         $req = 0;
 		while (true) {
-			$topics = $queue->getTopics();
+			$topics = $this->queue->getTopics();
 			if ($topics) {
 				// 遍历topic任务列表
 				foreach ($topics as $key => $jobName) {
 					// 每次最多取MAX_POP个任务执行
 					for ($i = 0; $i < self::MAX_POP; $i++) {
-						$data = $queue->pop($jobName);
-						$log->log(print_r($data, true), 'info');
-						if (!empty($data) && isset($data['jobAction'])) {
-							//嵌入框架
-                            $this->loadFramework();
-							$jobName   = "Kcloze\MyJob\\" . ucfirst($jobName);
-							$jobAction = $data['jobAction'];
-							$log->log(print_r([$jobName, $jobAction], true), 'info');
-							if (method_exists($jobName, $jobAction)) {
-								try {
-                                    $job = new $jobName();
-                                    $job->$jobAction($data);
-                                    $log->log("uuid: " . $data['uuid'] . " one job has been done!", 'info');
-                                } catch (Exception $e) {
-                                    $log->log($e->getMessage(), 'error');
-                                }
-							} else {
-								$log->log($jobAction . " action not find!", 'warning');
-							}
-						} else {
-							$log->log($jobName . " no work to do!", 'info');
-							break;
-						}
+						$data = $this->queue->pop($jobName);
+                        $this->logger->log(print_r($data, true), 'info');
+                        if (!empty($data) && isset($data['jobAction'])) {
+                            $this->logger->log(print_r([$jobName, $jobAction], true), 'info');
+                            $jobAction = $data['jobAction'];
+                        	//业务代码
+                            $this->loadFramework($jobName, $jobAction, $data);
+                        } else {
+                            $this->logger->log($jobName . " no work to do!", 'info');
+                            break;
+                        }
 					}
 				}
 			} else {
-				$log->log("All no work to do!", 'info');
+				$this->logger->log("All no work to do!", 'info');
 			}
-			$log->log("sleep 3 second!", 'info');
-            $log->flush();
+			$this->logger->log("sleep 3 second!", 'info');
+            $this->logger->flush();
             sleep(3);
             $req++;
             //达到最大循环次数，退出循环，防止内存泄漏
@@ -79,12 +74,17 @@ class Jobs
      */
     protected function loadFramework()
     {
-        // defined('YII_DEBUG') or define('YII_DEBUG', true);
-        // defined('YII_ENV') or define('YII_ENV', 'dev');
-        // require __DIR__ . '/vendor/autoload.php';
-        // require __DIR__ . '/vendor/yiisoft/yii2/Yii.php';
-        // $config = require __DIR__ . '/config/console.php';
-        // $application = new yii\console\Application($config);
-        // $exitCode    = $application->run();
+        $jobName = "Kcloze\MyJob\\" . ucfirst($jobName);
+        if (method_exists($jobName, $jobAction)) {
+            try {
+                $job = new $jobName();
+                $job->$jobAction($data);
+                $this->logger->log("uuid: " . $data['uuid'] . " one job has been done!", 'trace', 'jobs');
+            } catch (Exception $e) {
+                $this->logger->log($e->getMessage(), 'error');
+            }
+        } else {
+            $this->logger->log($jobAction . " action not find!", 'warning');
+        }
     }
 }
