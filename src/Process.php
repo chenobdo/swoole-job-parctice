@@ -51,11 +51,11 @@ class Process
 
 	public function registSignal($workers)
 	{
-		\swoole_process::signal(SIGTERM, function ($signo) use (&$workers) {
+		\swoole_process::signal(SIGTERM, function($signo) {
 			$this->exitMaster("收到退出信号,退出主进程");
 		});
 
-		\swoole_process::signal(SIGCHLD, function ($signo) use (&$workers)) {
+		\swoole_process::signal(SIGCHLD, function($signo) use (&$workers)) {
 			while (true) {
 				$ret = \swoole_process::wait(false);
 				if ($ret) {

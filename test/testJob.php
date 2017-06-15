@@ -14,7 +14,7 @@ $jobName = 'MyJob';
 $queue->addTopic($jobName);
 $topics = $queue->getTopics();
 
-for ($i = 0; $i < 100; $i++) {
+for ($i = 0; $i < 10; $i++) {
 	$data = ['jobAction' => 'helloAction', 'title' => 'kcloze', 'time' => time()];
 	$queue->push($jobName, $data);
 	echo "ok\n";
