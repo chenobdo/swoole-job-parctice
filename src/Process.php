@@ -9,6 +9,8 @@ class Process
 	private $workNum = 5;
 	private $config  = [];
 
+	const PROCESS_NAME_LOG = ': reserve process'; //shell脚本管理标示
+
 	public function start($config)
 	{
 		// \swoole_process::daemon();
@@ -27,13 +29,13 @@ class Process
 		$self = $this;
 		$ppid = getmygid();
 		file_put_contents($self->config['logPath'] . '/master.pid.log', $ppid . "\n");
-        \swoole_set_process_name("job master " . $ppid . " : reserve process");
+        \swoole_set_process_name("job master " . $ppid . $self::PROCESS_NAME_LOG);
 
     	$reserveProcess = new \swoole_process(function () use ($self, $workNum) {
             // $self->init();
 
             //设置进程名字
-            swoole_set_process_name("job " . $workNum . ": reserve process");
+            swoole_set_process_name("job " . $workNum . $self::PROCESS_NAME_LOG);
             try {
                 $job = new Jobs();
                 $job->run($self->config);
@@ -51,7 +53,7 @@ class Process
 
 	public function registSignal($workers)
 	{
-		\swoole_process::signal(SIGTERM, function ($signo) use (&$workers) {
+		\swoole_process::signal(SIGTERM, function($signo) {
 			$this->exitMaster("收到退出信号,退出主进程");
 		});
 
