@@ -7,8 +7,8 @@ class Jobs
 	const MAX_POP = 10; //单个topic每次最多取多少次
     const MAX_REQUEST = 100;
 
-	protected $logger = null;
-    protected $queue  = null;
+	public $logger = null;
+    public $queue  = null;
 
     public function __construct($config)
     {
@@ -31,7 +31,7 @@ class Jobs
 						$data = $this->queue->pop($jobName);
                         $this->logger->log(print_r($data, true), 'info');
                         if (!empty($data) && isset($data['jobAction'])) {
-                            $jobAction = $data['jobAction']; 
+                            $jobAction = $data['jobAction'];
                             $this->logger->log(print_r([$jobName, $jobAction], true), 'info');
                         	//业务代码
                             $this->loadFramework($jobName, $jobAction, $data);
@@ -56,7 +56,7 @@ class Jobs
 		}
 	}
 
-	protected function getQueue($config)
+	public function getQueue($config)
     {
         if ($config['type'] == 'redis') {
             $queue = new Redis($config);
